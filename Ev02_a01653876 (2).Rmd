@@ -1,0 +1,276 @@
+---
+title: "Evidencia 2"
+author: "Elí Salomón Martínez Hernández - A01653876"
+date: "27/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Librerías
+```{r librerías}
+library(BiocManager)
+library(Biostrings)
+library(seqinr)
+library(adegenet)
+library(ape)
+library(ggtree)
+library(DECIPHER)
+library(viridis)
+library(ggplot2)
+library(phytools)
+```
+
+## Parte 1 - PRESENTACIÓN
+  En una presentación, responde justificadamente las siguientes preguntas:
+
+  1. ¿Cuáles son los virus “similares” a SARS-CoV-2 en el mundo? Obtén tus referencias de PUBMED.
+  2. ¿Cuáles son los coronavirus reportados en otras especies que pueden ser cercanos al genoma de SARS-CoV-2? Incluye de qué especies son y menciona las referencias de los artículos consultados en PUBMED.
+  3. En relación con la situación actual reflexiona, ¿qué propondrías que se deba hacer durante la contingencia del SARS-CoV-2 en comunidades de bajos recursos? Si tu vivieras en una situación de escasos recursos, ¿qué harías? Justifica tu respuesta. 
+    
+  Importante:
+
+  - Tu presentación debe tener una duración máxima de 5 minutos.
+  - Se transmitirá con la cámara encendida.
+  - Se debe dar respuesta a las 3 preguntas antes mencionadas.
+  - Puedes compartir algún documento o presentación de apoyo.
+
+#### Para visualizar la presentación [click aquí](https://docs.google.com/presentation/d/11x_Cx-aJgS3mdA0B9_Dyvlw0Eh2cpsMc4WB2lIciAZM/edit?usp=sharing)
+  
+    
+## Parte 2 - CÓDIGO
+
+  Realiza lo siguiente en un script de R y código:
+
+### 1. De las siguientes tres opciones, selecciona una opción para investigar:
+  
+  - Analizar las secuencias de SARS-CoV-2 reportadas en los 20 países con más casos reportados. Y puedes tratar de responder a la pregunta: ¿Son muy diferentes las variantes entre cada país? ¿Es diferente el SARS-CoV-2 entre las diferentes poblaciones: Asiática, Hispana, Europea o Africana?
+  
+  **Después de haber realizado el programa para analizar las secuencias de SARS-CoV-2 en los países con más casos reportados, se puede decir que las variantes no son muy diferentes. Ya que la longitud de las secuencias en la mayoría de los casos ronda entre el 29,000, a excepción de algunas secuencias que tienen solo 200 nucleótidos. Sin embargo, la cantidad de bases en la secuencias con similar longitud es casi la misma. Aunque hay 11 secuencias que poseen bases desconocidas y las variantes con menos nucléotidos; por lo general todas son muy parecidas. Por otra parte si analizamos la tabla de la matriz distancias, podemos ver que no existe una gran distancia entre las variantes en los países de los diferentes continentes al igual que en el árbol filogenético, el cual contiene las ramas de las variante cortas. Reforzando de esta forma que el virus del SARS-CoV-2 es bastante similar para todas sus variantes.**
+  
+  - Trabajar con las secuencias de los coronavirus de otras especies que son similares a SARS-CoV-2, para tratar de explicar el fenómeno de zoonosis del virus. Incluye 20 especies reportadas. Puedes trabajar con variantes de SARS-CoV-2 de otros países.
+  - Estudia la cercanía de SARS-CoV-2 con otros coronavirus humanos que ocasionan enfermedades similares (como MERS). En tu investigación debes trabajar con 20 virus diferentes.
+  
+
+#### Variantes con read.GenBank()
+```{r variantes}
+virus <- c("MZ023994.1", "MW828325.1", "MT835383", "HG993784.1", "MW741552.1", "MW308549.1", "OD906774.1", "MW672138", "MW255830", "MW822592.1", "MW633891.1", "MT470219.1", "HG994158.1", "MW898809.1", "MW884219.1", "MW938089.1", "MZ026853.1", "MW981442.1", "MW577029.1", "MW309425.1")
+secuencias <- read.GenBank(virus)
+
+str(secuencias)
+```
+
+
+#### Especies a las que pertenecen de las secuencias
+```{r atributos}
+attr(secuencias,"species")
+```
+
+### 2. Calcula la longitud de las secuencias que incluyas.
+
+
+#### Interpretación del código:
+En este caso, se crea un vector con el nombre de los países donde se han reportado más casos de SARS-CoV-2 para después combinarlos con el data frame de la longitud. Para acceder a la secuencia, al estar en un archivo raw se debe accesar como una lista de 20 valores y con ayuda de la función length() se puede sacar el valor. Finalmente se imprime el data frame con el país de la variante y su respectiva longitud.
+
+```{r tamaño}
+variantes <- c("USA", "INDIA", "BRAZIL", "FRANCE", "RUSSIA", "TURKEY","UK", "CHILE", "ROMANIA","GERMANY", "ARGENTINA", "COLOMBIA", "POLAND", "IRAN", "MEXICO", "PERU", "INDONESIA", "SOUTH AFRICA", "NETHERLANDS", "CANADA")
+
+size <- data.frame(Variante = variantes, size = c(length(secuencias[[1]]),length(secuencias[[2]]),length(secuencias[[3]]),length(secuencias[[4]]),length(secuencias[[5]]),length(secuencias[[6]]),length(secuencias[[7]]),length(secuencias[[8]]),length(secuencias[[9]]),length(secuencias[[10]]),length(secuencias[[11]]),length(secuencias[[12]]),length(secuencias[[13]]),length(secuencias[[14]]),length(secuencias[[15]]),length(secuencias[[16]]),length(secuencias[[17]]),length(secuencias[[18]]),length(secuencias[[19]]),length(secuencias[[20]])))
+
+print(size)
+```
+
+### 3. Crea una sola gráfica donde se comparen el número de bases de ADN que componen todas las variantes del virus. 
+
+
+#### Interpretación del código:
+Primero por medio de la función write.dna() se concentran las secuencias en un solo archivo para poder leerlo fácilmente. Posteriormente se guarda la lectura del archivo fasta en una variable para poder acceder a las secuencias. Con ayuda de la lectura del archivo fasta, se crean tablas para conocer el número de bases en cada secuencia y se guarda en una variable la table. Después se crean 5 data frames, uno para cada base, y se accede la base con [número del elemento]. En este caso para la base "a" se tendría que buscar el primer valor de la tabla, para "c" se busca el segundo y así consecutivamente. Finalmente al tenerse las 5 bases con la función cbind se combinan y se imprime el data frame combinado. Después se crea una variable grafica a la cual se le asigna el data frame combinado y se elimina la columna bases. Luego con la función barplot(), se grafica la gráfica de barras con el número de nucleótidos para cada pais. 
+
+```{r comparación}
+write.dna(secuencias, file ="sec_cov.fasta", format = "fasta")
+var <- read.fasta("sec_cov.fasta")
+
+
+usa_c <- table(var$MZ023994.1)
+ind_c <- table(var$MW828325.1)
+bra_c <- table(var$MT835383)
+fra_c <- table(var$HG993784.1)
+rus_c <- table(var$MW741552.1)
+tur_c <- table(var$MW308549.1)
+uk_c <- table(var$OD906774.1)
+chil_c <- table(var$MW672138)
+rom_c <- table(var$MW255830)
+ger_c <- table(var$MW822592.1)
+arg_c <- table(var$MW633891.1)
+col_c <- table(var$MT470219.1)
+pol_c <- table(var$HG994158.1)
+ira_c <- table(var$MW898809.1)
+mex_c <- table(var$MW884219.1)
+per_c <- table(var$MW938089.1)
+indo_c <- table(var$MZ026853.1)
+stha_c <- table(var$MW981442.1)
+neth_c <- table(var$MW577029.1)
+can_c <- table(var$MW309425.1)
+
+
+A <- data.frame(Base = "A", USA = usa_c[2], INDIA = ind_c[2], BRAZIL = bra_c[2], FRANCE = fra_c[2], RUSSIA = rus_c[2], TURKEY = tur_c[2], UK = uk_c[2], CHILE = chil_c[2], ROMANIA = rom_c[2], GERMANY = ger_c[2], ARGENTINA = arg_c[2], COLOMBIA = col_c[2], POLAND = pol_c[2], IRAN = ira_c[2], MEXICO = mex_c[2], PERU = per_c[2], INDONESIA = indo_c[2], SOUTHAFRICA = stha_c[2], NETHERLANDS = neth_c[2] , CANADA = can_c[2])
+
+C <- data.frame(Base = "C", USA = usa_c[3], INDIA = ind_c[3],  BRAZIL = bra_c[3], FRANCE = fra_c[3], RUSSIA = rus_c[3], TURKEY = tur_c[3], UK = uk_c[3], CHILE = chil_c[3], ROMANIA = rom_c[3], GERMANY = ger_c[3], ARGENTINA =arg_c[3], COLOMBIA = col_c[3], POLAND = pol_c[3], IRAN = ira_c[3],MEXICO =  mex_c[3], PERU = per_c[3], INDONESIA = indo_c[3],  SOUTHAFRICA = stha_c[3], NETHERLANDS = neth_c[3] , CANADA = can_c[3])
+
+G <- data.frame(Base = "G", USA = usa_c[4], INDIA = ind_c[4],  BRAZIL = bra_c[4], FRANCE = fra_c[4], RUSSIA = rus_c[4], TURKEY = tur_c[4], UK = uk_c[4], CHILE = chil_c[4], ROMANIA = rom_c[4], GERMANY = ger_c[4], ARGENTINA =arg_c[4], COLOMBIA = col_c[4], POLAND = pol_c[4], IRAN = ira_c[4], MEXICO = mex_c[4], PERU = per_c[4], INDONESIA = indo_c[4],  SOUTHAFRICA = stha_c[4], NETHERLANDS = neth_c[4] , CANADA = can_c[4])
+
+N <- data.frame(Base = "N", USA = usa_c[5], INDIA = 0,  BRAZIL = 0, FRANCE = fra_c[5], RUSSIA = 0, TURKEY = 0, UK = uk_c[5], CHILE = 0, ROMANIA = rom_c[5], GERMANY = ger_c[5], ARGENTINA =arg_c[5], COLOMBIA = 0, POLAND = pol_c[5], IRAN = 0, MEXICO = mex_c[5], PERU = 0, INDONESIA = indo_c[5],  SOUTHAFRICA = stha_c[5], NETHERLANDS = 0 , CANADA = can_c[5])
+
+T <- data.frame(Base = "T", USA = usa_c[6], INDIA = ind_c[5],  BRAZIL = bra_c[5], FRANCE = fra_c[6], RUSSIA = rus_c[5], TURKEY = tur_c[5], UK = uk_c[6], CHILE = chil_c[5], ROMANIA = rom_c[6], GERMANY = ger_c[6], ARGENTINA =arg_c[6], COLOMBIA = col_c[5], POLAND = pol_c[6], IRAN = ira_c[10], MEXICO = mex_c[6], PERU = per_c[5], INDONESIA = indo_c[6],  SOUTHAFRICA = stha_c[6], NETHERLANDS = neth_c[5] , CANADA = can_c[6])
+
+
+
+sars <- rbind(A, C, G, N ,T)
+
+
+grafica <-sars
+grafica$Base <- NULL
+grafica
+
+
+barplot(t(as.matrix(grafica)),names.arg = c("a", "c", "g", "n", "t"), col=c("red","blue","green","yellow","orange","purple","pink","aquamarine", "black", "gray", "navy", "deepskyblue", "mediumpurple1", "mistyrose", "magenta", "darkgreen", "chartreuse", "darkorange1", "darkred", "burlywood2"), main="Nucleótidos por variante",xlab="Bases", ylab="Frecuencia", xlim = c(0,120), cex.axis = 1,  ylim = c(0,10000), beside = TRUE)
+
+
+legend(x = "top", legend = c("USA", "INDIA", "BRAZIL", "FRANCE", "RUSSIA", "TURKEY","UK", "CHILE", "ROMANIA","GERMANY"), fill = c("red","blue","green","yellow","orange","purple","pink","aquamarine", "black", "gray"), cex = 0.5)
+legend(x = "topright", legend = c("ARGENTINA", "COLOMBIA", "POLAND", "IRAN", "MEXICO", "PERU", "INDONESIA", "SOUTH AFRICA", "NETHERLANDS", "CANADA"), fill = c("navy", "deepskyblue", "mediumpurple1", "mistyrose", "magenta", "darkgreen", "chartreuse", "darkorange1", "darkred", "burlywood2"), cex = 0.5)
+
+
+```
+
+
+
+### Iterpretación de las gráficas
+Como se puede observar en la gráfica, se puede saber que las secuencias que se están analizando son variantes de un mismo virus. Ya que las cadenas de RNA son muy similares para cada variante, a pesar de que el nucleótido "t" es el que más varía; los demás nucleótidos son simétricos por así decirlo. Por otra parte se puede ver que la base desconocida también varía en las secuencias ya que no todas poseen esta base, sin embargo las que si la contienen no presenta un cambio en el número de nucleótidos "n". 
+
+
+
+
+#### Interpretación del código:
+Se cargan las secuencias con la función readDNAStringSet(). 
+
+```{r readstringset}
+noAlign <- readDNAStringSet("sec_cov.fasta", format = "fasta")
+```
+
+#### Interpretación del código:
+Con las funciones OrientNucleotides() y AlignSeqs() se alinean las secuencias.
+
+```{r orienta}
+noAlign <- OrientNucleotides(noAlign)
+```
+
+
+```{r alinear}
+Align <- AlignSeqs(noAlign)
+```
+ 
+
+#### Interpretación del código:
+Por medio de writeXStringSet() se guardan las secuencias alineadas en un archivo llamado "variantes.fasta".
+
+```{r writealinear}
+writeXStringSet(Align, file = "variantes.fasta")
+```
+
+
+#### Interpretación del código:
+Se obtiene el nuevo archivo con la función read.alignment().
+
+```{r readalinear}
+variantesAlign <- read.alignment("variantes.fasta", format = "fasta") 
+```
+
+
+#### Interpretación del código:
+Se crea una matriz de distancia con la función dist.alignment() para posteriormente convertirla en un data frame. 
+
+```{r dist}
+distancias <- dist.alignment(variantesAlign, matrix = "similarity")
+distancias
+```
+
+#### Interpretación del código:
+Se convierte la matriz distancia en un data frame y se crea una representación gráfica de la matriz con la función table.paint(), en donde las sombras más oscuras representan una mayor distancia. 
+
+```{r}
+temp <- as.data.frame(as.matrix(distancias))
+temp
+
+table.paint(temp, cleg = 0, clabel.row = .5, clabel.col = .5) + scale_color_viridis()
+```
+
+
+#### Interpretación del código:
+Se crea una árbol con el paquete ape() y la función nj(). Después se plotea el árbol con la librería de phytools y la función roundPhylogram(). 
+
+```{r}
+arbol <- nj(distancias)
+arbol <- ladderize(arbol)
+plot(arbol, no.margin=TRUE)
+                  
+```
+
+
+#### Conclusiones
+Como se puede ver en el árbol filogenético de las variantes del SARS-CoV-2, cada una de ellas no mantiene una distancia tan grande. Es decir, no existe una diferencias muy grande entre las diferentes secuencias del virus. Como podemos ver la variante MZ026853.1 (INDONESIA) y MT835383.1 (BRASIL) están una encima de otra, esto representa que ambas secuencias son muy similares entre sí. También se puede ver que las variantes HG994158.1 (POLONIA), MW672138 (CHILE), MW741552.1(RUSIA) y MW255830(RUMANIA) tienen una rama corta lo cual podemos decir que estas 4 variantes son más similares a las demás variantes. Mientras que OD906774.1 (REINO UNIDO) y HG993784.1 (FRANCIA) tienen ramas más largas y separadas del centro. Lo cual significa que son menos similares al resto. Sin embargo están unidas por lo que son similares entre sí. Este caso también se encuentran las variantes MZ023994.1 (EEUU) y MW898809.1 (IRÁN) solo que no están relacionadas entre sí pero si están más alejadas de las demás. Finalmente las variantes que restan, están a una distancia más corta del centro, por lo que tienen características similares con todas las demás variantes pero se relacionan entre sí con alguna otra variante en una subrama. Ejemplo de esto tenemos a MT470219.1 (COLOMBIA) y MW577029.1 (PAÍSES BAJOS); así como MW633891.1 (ARGENTINA) y MW309425.1 (CANADÁ). Aunado a esto, en el proceso de desarrollo del código se presentarón diversos problemas para plotear el árbol y el mapa git. Esto debido a que habían secuencias muy parecidas y al dividirse en la matriz distancia, se dividían entre 0 dando como resultado un NaN en la matriz. Lo anterior no podía representarse en el mapa sin eliminar los valores NaN, y lo mismo ocurría con el árbol ya que no reconocía a las secuencias con valores no existentes y no lo imprimía. Así que para resolver este problema, se agregaron 2 variantes que reemplazarían a las que no tenían valor y se pudo resolver el error. 
+ 
+### Cita de paquetes
+```{r citation 1}
+citation("BiocManager")
+```
+```{r citation 2}
+citation("Biostrings")
+```
+
+```{r citation 3}
+citation("seqinr")
+```
+
+```{r citation 4}
+citation("adegenet")
+```
+
+```{r citation 5}
+citation("ape")
+```
+
+```{r citation 6}
+citation("ggtree")
+```
+
+```{r citation 7}
+citation("DECIPHER")
+```
+
+```{r citation 8}
+citation("viridis")
+```
+
+```{r citation 9}
+citation("ggplot2")
+```
+
+```{r citation 10}
+citation("phytools")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

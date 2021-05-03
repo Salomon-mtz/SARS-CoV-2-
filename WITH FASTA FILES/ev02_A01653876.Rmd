@@ -1,0 +1,197 @@
+---
+title: "Evidencia 2"
+author: "Elí Martínez- A01653876"
+date: "26/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r librerías}
+library(Biostrings)
+library(seqinr)
+library(ape)
+library(phytools)
+library(ggtree)
+library(DECIPHER)
+```
+
+## Parte 1 - PRESENTACIÓN
+  En una presentación, responde justificadamente las siguientes preguntas:
+
+  1. ¿Cuáles son los virus “similares” a SARS-CoV-2 en el mundo? Obtén tus referencias de PUBMED.
+  2. ¿Cuáles son los coronavirus reportados en otras especies que pueden ser cercanos al genoma de SARS-CoV-2? Incluye de qué especies son y menciona las referencias de los artículos consultados en PUBMED.
+  3. En relación con la situación actual reflexiona, ¿qué propondrías que se deba hacer durante la contingencia del SARS-CoV-2 en comunidades de bajos recursos? Si tu vivieras en una situación de escasos recursos, ¿qué harías? Justifica tu respuesta.
+    
+  Importante:
+
+  - Tu presentación debe tener una duración máxima de 5 minutos.
+  - Se transmitirá con la cámara encendida.
+  - Se debe dar respuesta a las 3 preguntas antes mencionadas.
+  - Puedes compartir algún documento o presentación de apoyo.
+  
+    
+## Parte 2 - CÓDIGO
+
+  Realiza lo siguiente en un script de R y código:
+
+  1. De las siguientes tres opciones, selecciona una opción para investigar:
+  
+    - Analizar las secuencias de SARS-CoV-2 reportadas en los 20 países con más casos reportados. Y puedes tratar de responder a la pregunta: ¿Son muy diferentes las variantes entre cada país? ¿Es diferente el SARS-CoV-2 entre las diferentes poblaciones: Asiática, Hispana, Europea o Africana?
+    - Trabajar con las secuencias de los coronavirus de otras especies que son similares a SARS-CoV-2, para tratar de explicar el fenómeno de zoonosis del virus. Incluye 20 especies reportadas. Puedes trabajar con variantes de SARS-CoV-2 de otros países.
+    - Estudia la cercanía de SARS-CoV-2 con otros coronavirus humanos que ocasionan enfermedades similares (como MERS). En tu investigación debes trabajar con 20 virus diferentes.
+    
+```{r secuencias}
+usa <- read.fasta("usa.fasta")
+ind <- read.fasta("india.fasta")
+bra <- read.fasta("brazil.fasta")
+fra <- read.fasta("france.fasta")
+rus <- read.fasta("russia.fasta")
+tur <-read.fasta("turkey.fasta")
+uk <- read.fasta("uk.fasta")
+ita <- read.fasta("italy.fasta")
+spa <- read.fasta("spain.fasta")
+ger <- read.fasta("germany.fasta")
+arg <- read.fasta("argentina.fasta")
+col <- read.fasta("colombia.fasta")
+pol <- read.fasta("poland.fasta")
+ira <- read.fasta("iran.fasta")
+mex <- read.fasta("mexico.fasta")
+per <- read.fasta("peru.fasta")
+indo <- read.fasta("indonesia.fasta")
+stha <- read.fasta("southafrica.fasta")
+neth <- read.fasta("netherlands.fasta")
+can <- read.fasta("canada.fasta")
+
+```
+
+  2. Calcula la longitud de las secuencias que incluyas.
+  
+```{r longitud}
+usa_l <- length(usa$MZ023994.1)
+ind_l <- length(ind$MW828325.1)
+bra_l <- length(bra$MT925972.1)
+fra_l <- length(fra$HG993784.1)
+rus_l <- length(rus$MW741552.1)
+tur_l <-length(tur$MW308549.1)
+uk_l <- length(uk$OD906774.1)
+ita_l <- length(ita$MW660619.1)
+spa_l <- length(spa$MW741755.1)
+ger_l <- length(ger$MW822592.1)
+arg_l <- length(arg$MW633891.1)
+col_l <- length(col$MT470219.1)
+pol_l <- length(pol$HG994158.1)
+ira_l <- length(ira$MW898809.1)
+mex_l <- length(mex$MW884219.1)
+per_l <- length(per$MW938089.1)
+indo_l <- length(indo$MZ026853.1)
+stha_l <- length(stha$MW981442.1)
+neth_l <- length(neth$MW577029.1)
+can_l <- length(can$MW309425.1)
+
+variantes <- c("USA", "INDIA", "BRAZIL", "FRANCE", "RUSSIA", "TURKEY","UK", "ITALY", "SPAIN","GERMANY", "ARGENTINA", "COLOMBIA", "POLAND", "IRAN", "MEXICO", "PERU", "INDONESIA", "SOUTH AFRICA", "NETHERLANDS", "CANADA")
+
+size <- data.frame(Variantes = variantes, Size = c(usa_l, ind_l, bra_l, fra_l, rus_l, tur_l, uk_l, ita_l, spa_l, ger_l, arg_l, col_l, pol_l, ira_l, mex_l, per_l, indo_l, stha_l, neth_l, can_l))
+print(size)
+
+variantes_c <- c("us", "ind", "bra", "fra", "rus", "tur", "uk", "ita", "spa", "ger", "arg", "col", "pol", "ira", "mex", "per", "indo", "stha", "neth", "can")
+grafica_s <- size
+grafica_s$Variantes <- NULL
+barplot(t(as.matrix(grafica_s)), col=rainbow(20), main="Países",xlab="Variantes", ylab="Frecuencia", xlim = c(0,50), cex.axis = 1,  ylim = c(0,30000), beside = TRUE, legend.text = variantes_c)
+
+```
+
+  3. Crea una sola gráfica donde se comparen el número de bases de ADN que componen todas las variantes del virus. 
+
+```{r}
+usa_c <- c(table(usa$MZ023994.1))
+ind_c <- c(table(ind$MW828325.1))
+bra_c <- c(table(bra$MT925972.1))
+fra_c <- c(table(fra$HG993784.1))
+rus_c <- c(table(rus$MW741552.1))
+tur_c <- c(table(tur$MW308549.1))
+uk_c <- c(table(uk$OD906774.1))
+ita_c <- c(table(ita$MW660619.1))
+spa_c <- c(table(spa$MW741755.1))
+ger_c <- c(table(ger$MW822592.1))
+arg_c <- c(table(arg$MW633891.1))
+col_c <- c(table(col$MT470219.1))
+pol_c <- c(table(pol$HG994158.1))
+ira_c <- c(table(ira$MW898809.1))
+mex_c <- c(table(mex$MW884219.1))
+per_c <- c(table(per$MW938089.1))
+indo_c <- c(table(indo$MZ026853.1))
+stha_c <- c(table(stha$MW981442.1))
+neth_c <- c(table(neth$MW577029.1))
+can_c <- c(table(can$MW309425.1))
+
+a <- data.frame(Base = "a", USA = usa_c[[1]], INDIA = ind_c[[1]], BRAZIL = bra_c[[1]], FRANCE = fra_c[[1]], RUSSIA = rus_c[[1]], TURKEY = tur_c[[1]], UK = uk_c[[1]], ITALY = ita_c[[1]], SPAIN = spa_c[[1]], GERMANY = ger_c[[1]], ARGENTINA = arg_c[[1]], COLOMBIA = col_c[[1]], POLAND = pol_c[[1]], IRAN = ira_c[[1]], MEXICO = mex_c[[1]], PERU = per_c[[1]], INDONESIA = indo_c[[1]], SOUTHAFRICA = stha_c[[1]], NETHERLANDS = neth_c[[1]] , CANADA = can_c[[1]])
+
+c <- data.frame(Base = "c", USA = usa_c[[2]], INDIA = ind_c[[2]], BRAZIL = bra_c[[2]], FRANCE = fra_c[[2]], RUSSIA = rus_c[[2]], TURKEY = tur_c[[2]], UK = uk_c[[2]], ITALY = ita_c[[2]], SPAIN = spa_c[[2]], GERMANY = ger_c[[2]], ARGENTINA = arg_c[[2]], COLOMBIA = col_c[[2]], POLAND = pol_c[[2]], IRAN = ira_c[[2]], MEXICO = mex_c[[2]], PERU = per_c[[2]], INDONESIA = indo_c[[2]], SOUTHAFRICA = stha_c[[2]], NETHERLANDS = neth_c[[2]] , CANADA = can_c[[2]])
+
+g <- data.frame(Base = "g", USA = usa_c[[3]], INDIA = ind_c[[3]], BRAZIL = bra_c[[3]], FRANCE = fra_c[[3]], RUSSIA = rus_c[[3]], TURKEY = tur_c[[3]], UK = uk_c[[3]], ITALY = ita_c[[3]], SPAIN = spa_c[[3]], GERMANY = ger_c[[3]], ARGENTINA = arg_c[[3]], COLOMBIA = col_c[[3]], POLAND = pol_c[[3]], IRAN = ira_c[[3]], MEXICO = mex_c[[3]], PERU = per_c[[3]], INDONESIA = indo_c[[3]], SOUTHAFRICA = stha_c[[3]], NETHERLANDS = neth_c[[3]] , CANADA = can_c[[3]])
+
+n <- data.frame(Base = "n", USA = usa_c[[4]], INDIA = 0, BRAZIL = 0, FRANCE = fra_c[[4]], RUSSIA = 0, TURKEY = 0, UK = uk_c[[4]], ITALY = 0, SPAIN = 0, GERMANY = ger_c[[4]], ARGENTINA = arg_c[[4]], COLOMBIA = 0, POLAND = pol_c[[4]], IRAN = ira_c[[4]], MEXICO = mex_c[[4]], PERU = 0, INDONESIA = indo_c[[4]], SOUTHAFRICA = stha_c[[4]], NETHERLANDS = 0 , CANADA = can_c[[4]])
+
+t <- data.frame(Base = "t", USA = usa_c[[5]], INDIA = ind_c[[4]], BRAZIL = bra_c[[4]],FRANCE = fra_c[[5]], RUSSIA = rus_c[[4]], TURKEY = tur_c[[4]], UK = uk_c[[5]], ITALY = ita_c[[4]], SPAIN = spa_c[[4]], GERMANY = ger_c[[5]], ARGENTINA = arg_c[[5]], COLOMBIA = col_c[[4]], POLAND = pol_c[[5]], IRAN = ira_c[[5]], MEXICO = mex_c[[5]], PERU = per_c[[4]], INDONESIA = indo_c[[5]], SOUTHAFRICA = stha_c[[5]], NETHERLANDS = neth_c[[4]] , CANADA = can_c[[5]])
+
+
+
+bases <-  rbind(a, c, g, n, t)
+print(bases)
+
+grafica <-bases
+grafica$Base <- NULL
+barplot(t(as.matrix(grafica)),names.arg = c("a", "c", "g", "n", "t"), col=rainbow(20), main="Variantes",xlab="Bases", ylab="Frecuencia", xlim = c(0,170), cex.axis = 1,  ylim = c(0,10000), beside = TRUE)
+legend(190, 10000, c("us", "ind", "bra", "fra", "rus", "tur", "uk", "ita", "spa", "ger", "arg", "col", "pol", "ira", "mex", "per", "indo", "stha", "neth", "can") , cex = 0.8)
+
+
+```
+
+  4. Agrega un análisis jerárquico global obtenido de las secuencias que se seleccionaron para estudiar.
+
+```{r}
+ Variante <- readDNAStringSet("sec_cov.fasta", format = "fasta")
+# 
+# bases <- c("A", "C", "G", "T","N")
+# nucleotidos <- data.frame(Variantes = names(secuencias))
+# 
+# for (i in 1:length(bases)){
+#   nucle <- letterFrequency(variante, bases[i], as.prob = FALSE)
+#   nucleotidos <- cbind(nucleotidos,nucle)
+# }
+# 
+# nucleotidos
+
+# graf <- as.data.frame(sars)
+# 
+# graf <- reshape2::melt(nucleotidos, id.var = "Variantes")
+# grafica<-ggplot(data=graf, aes(x=bases, y=Variantes)) +
+# geom_bar(stat="identity", position=position_dodge())
+# 
+# grafica
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
